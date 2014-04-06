@@ -14,20 +14,28 @@ func startGoTest(doneChan chan bool) {
 
 	args := append([]string{"test"}, os.Args[1:]...)
 	cmd := exec.Command("go", args...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
 
-	err := cmd.Start()
+	testOutput, err := cmd.Output()
 	if err != nil {
 		fmt.Println(err)
-		os.Exit(1)
 	}
-	err = cmd.Wait()
+
+	//chekcing to see if any unit tests failed, if so do the windows cmd beep
+	if strings.Contains(string(testOutput), "--- FAIL") {
+		fmt.Print("\x07") //the lovely console beep sound :D
+	}
+
+	//dislay out the unit test results
+	fmt.Println(string(testOutput))
+
 	if err != nil {
-		fmt.Println(err)
+		if err.Error() != "exit status 1" {
+			fmt.Println(err)
+		}
 	}
 
 	fmt.Println()
+	fmt.Println("waiting...")
 	doneChan <- true
 }
 
@@ -56,6 +64,8 @@ func main() {
 	doneChan := make(chan bool)
 	readyChan := make(chan bool)
 
+	//initial waiting message
+	fmt.Println("waiting...")
 	for {
 		select {
 		case ev := <-watcher.Event:
