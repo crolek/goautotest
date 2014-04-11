@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/howeyc/fsnotify"
 	"os"
@@ -10,29 +11,29 @@ import (
 )
 
 func startGoTest(doneChan chan bool) {
+	var output bytes.Buffer
 	fmt.Println("Running tests...")
 
 	args := append([]string{"test"}, os.Args[1:]...)
 	cmd := exec.Command("go", args...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 
-	testOutput, err := cmd.Output()
+	//snagging the cmd output.
+	cmd.Stdout = &output
+	err := cmd.Run()
+
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	//chekcing to see if any unit tests failed, if so do the windows cmd beep
-	if strings.Contains(string(testOutput), "--- FAIL") {
+	//checking to see if any unit tests failed, if so do the windows cmd beep
+	if strings.Contains(output.String(), "--- FAIL") {
 		fmt.Print("\x07") //the lovely console beep sound :D
 	}
 
 	//dislay out the unit test results
-	fmt.Println(string(testOutput))
-
-	if err != nil {
-		if err.Error() != "exit status 1" {
-			fmt.Println(err)
-		}
-	}
+	fmt.Println(output.String())
 
 	fmt.Println()
 	fmt.Println("waiting...")

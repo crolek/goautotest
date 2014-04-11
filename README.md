@@ -18,9 +18,6 @@ If you want to create an executable to move it to your project do:
 
 Then just copy/paste the `goautotest.exe` into your project's unit test directory.
 
-###Warning
-If the projct you are using this on has build errors it doesn't properly report them. Sorry.
-
 ###Todo
-* Fix the build reporting bug
+* ~~Fix the build reporting bug~~ (Done)
 * Allow you to point this at a directory and let it run
