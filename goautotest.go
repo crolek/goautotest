@@ -12,6 +12,7 @@ import (
 
 func startGoTest(doneChan chan bool) {
 	var output bytes.Buffer
+	var errorOutput bytes.Buffer
 	fmt.Println("Running tests...")
 
 	args := append([]string{"test"}, os.Args[1:]...)
@@ -21,6 +22,8 @@ func startGoTest(doneChan chan bool) {
 
 	//snagging the cmd output.
 	cmd.Stdout = &output
+	cmd.Stderr = &errorOutput
+	errorOutput.Reset()
 	err := cmd.Run()
 
 	if err != nil {
@@ -28,10 +31,13 @@ func startGoTest(doneChan chan bool) {
 	}
 
 	//checking to see if any unit tests failed, if so do the windows cmd beep
-	if strings.Contains(output.String(), "--- FAIL") {
+	if strings.Contains(output.String(), "--- FAIL") ||
+		strings.Contains(errorOutput.String(), ".go:") { //make this into a better regex later
 		fmt.Print("\x07") //the lovely console beep sound :D
 	}
 
+	//display any build errors
+	fmt.Println(errorOutput.String())
 	//dislay out the unit test results
 	fmt.Println(output.String())
 
